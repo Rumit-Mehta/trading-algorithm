@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
 import yfinance as yf
+import numpy as np
 
 st.set_page_config(page_title="Stock Monitor", page_icon="📈", layout="wide")
 
@@ -164,6 +165,16 @@ def plot_price_volume(df: pd.DataFrame, title: str):
     fig.update_yaxes(title_text="Price", row=1, col=1)
     fig.update_yaxes(title_text="Volume", row=2, col=1)
     st.plotly_chart(fig, use_container_width=True)
+
+    df["GT/LT"] = df["SMA_20"] > df["SMA_50"]
+    df = df.dropna(subset=["SMA_20", "SMA_50"])
+
+
+    df["Signal"] = ""
+    df.loc[(df["GT/LT"] == True) & (df["GT/LT"].shift(-1) == False) & (df["GT/LT"].shift(-1) != None), "Signal"] = "Sell here"
+    df.loc[(df["GT/LT"] == False) & (df["GT/LT"].shift(-1) == True) & (df["GT/LT"].shift(-1) != None), "Signal"] = "Buy here"
+
+    st.dataframe(df)
 
 
 def parse_tickers(input_str: str) -> List[str]:
